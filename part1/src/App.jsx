@@ -1,44 +1,50 @@
 import { useState } from 'react'
 
-const Display = ({ counter }) => {
-  return (<div>{counter}</div>);
-}
-
-export function Button({ onClick, text }) {
-  return (<button onClick={onClick} > {text}</button >);
-}
-
-
 
 const App = () => {
+  const [clicks, setClicks] = useState({
+    right: 0,
+    left: 0
+  });
+
+  const [allClicks, setAllClicks] = useState([]);
 
 
-  const [counter, setCounter] = useState(0)
-  console.log("rendering with counter values", counter);
-  const addToCounter = () => {
-    console.log("increasingm value before: ", counter);
-    return setCounter(counter + 1)
+
+  const handleRightClick = () => {
+    const newClick = {
+      left: clicks.left,
+      right: clicks.right + 1
+    }
+
+    const newAllClicks = [
+      ...allClicks,
+      "r"
+    ]
+    setClicks(newClick);
+    setAllClicks(newAllClicks);
   }
-  const restToZero = () => { console.log("to zero value before", counter); setCounter(0); }
+  const handleLeftClick = () => {
+    const newClick = {
+      ...clicks,
+      left: clicks.left + 1
+    }
+    const newAllClicks = allClicks.concat("l");
+    setClicks(newClick);
 
-  const decreaseByOne = () => {
-    console.log('decreasing, value before', counter);
-    setCounter(counter - 1);
+    setAllClicks(newAllClicks);
   }
 
   return (
+
     <div>
 
-      <Display counter={counter} />
-
+      <p>left: {clicks.left}, right: {clicks.right}</p>
+      <button onClick={handleRightClick}>Right</button>
       <br />
-      <Button onClick={addToCounter} text="Add to counter" />
+      <button onClick={handleLeftClick}>Left</button>
       <br />
-
-      <Button onClick={restToZero} text="Reset to zero" />
-      <br />
-      <Button onClick={decreaseByOne} text="Decrease by one" />
-
+      <p>{allClicks.join(" ")}</p>
     </div>
   )
 }
