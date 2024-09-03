@@ -1,42 +1,40 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose')
 
-const dotenv = require("dotenv");
-dotenv.config();
-
-// const password = process.env.dbPassword;
-// if (!password) {
-//   console.log("Password not found in env");
-//   return;
-// }
-const url = process.env.TEST_MONGODB_URI;
-if (!url) {
-  console.log("Password not found in env");
-  return;
+if (process.argv.length < 3) {
+  console.log('give password as argument')
+  process.exit(1)
 }
-mongoose.set("strictQuery", false);
 
-mongoose.connect(url);
+const password = process.argv[2]
 
-const noteSchema = new mongoose.Schema({
-  content: String,
-  important: Boolean,
-});
+const url =
+  `mongodb+srv://fullstack:${password}@cluster0.o1opl.mongodb.net/noteApp?retryWrites=true&w=majority`
 
-const Note = mongoose.model("Note", noteSchema);
+mongoose.set('strictQuery', false)
+mongoose.connect(url).then(() => {
+  const noteSchema = new mongoose.Schema({
+    content: String,
+    important: Boolean,
+  })
 
-const note = new Note({
-  content: "HTML is easy",
-  important: true,
-});
+  const Note = mongoose.model('Note', noteSchema)
 
-note.save().then((result) => {
-  console.log("note saved!");
-  mongoose.connection.close();
-});
+  /*
+  const note = new Note({
+    content: 'HTML is x',
+    important: true,
+  })
 
-// Note.find({ important: true }).then((results) => {
-//   results.forEach((note) => {
-//     console.log(note);
-//   });
-//   mongoose.connection.close();
-// });
+  note.save().then(result => {
+    console.log('note saved!')
+    mongoose.connection.close()
+  })
+  */
+  Note.find({}).then(result => {
+    result.forEach(note => {
+      console.log(note)
+    })
+    mongoose.connection.close()
+  })
+})
+
