@@ -1,17 +1,42 @@
-import { useState } from "react";
-import Note, { Notification } from "./components/Note";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import LoginForm from "./components/Login";
+import { Note, NoteForm, Notification } from "./components/Note";
+import Togglable from "./components/Togglable";
+import loginService from "./services/login";
 import noteService from "./services/notes";
-
 const App = () => {
   const [notes, setNotes] = useState([]);
-  const [newNote, setNewNote] = useState("");
   const [showAll, setShowAll] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [user, setUser] = useState(null);
+  const noteFormRef = useRef();
 
   useEffect(() => {
     noteService.getAll().then((data) => setNotes(data));
   }, []);
+
+  useEffect(() => {
+    const loggedUserJSON = window.localStorage.getItem("loggedNoteappUser");
+    if (loggedUserJSON) {
+      const user = JSON.parse(loggedUserJSON);
+      setUser(user);
+      noteService.setToken(user.token);
+    }
+  }, []);
+
+  const handleLogin = async (userLoginData) => {
+    try {
+      const user = await loginService.login(userLoginData);
+      window.localStorage.setItem("loggedNoteappUser", JSON.stringify(user));
+      noteService.setToken(user.token);
+      setUser(user);
+    } catch (error) {
+      setErrorMessage("Wrong credentials");
+      setTimeout(() => {
+        setErrorMessage(null);
+      }, 5000);
+    }
+  };
 
   function toggleImportanceOf(id) {
     const note = notes.find((n) => {
@@ -37,22 +62,23 @@ const App = () => {
       });
   }
 
-  function addNote(e) {
-    e.preventDefault();
-
-    const newNoteObject = {
-      content: newNote,
-      important: Math.random() < 0.5,
-    };
-    noteService.create(newNoteObject).then((data) => {
-      setNotes(notes.concat(data));
-      setNewNote("");
-    });
+  function addNote(newNoteObject) {
+    noteFormRef.current.toggleVisibility();
+    noteService
+      .create(newNoteObject)
+      .then((data) => {
+        setNotes(notes.concat(data));
+      })
+      .catch((error) => console.log(error.response.data.error));
   }
 
-  function handleNoteChange(e) {
-    setNewNote(e.target.value);
-  }
+  const loginForm = () => {
+    return (
+      <Togglable buttonLabel="login">
+        <LoginForm userLoginData={handleLogin} />
+      </Togglable>
+    );
+  };
 
   const notesToShow = showAll
     ? notes
@@ -62,6 +88,16 @@ const App = () => {
     <div>
       <h1>Notes</h1>
       <Notification message={errorMessage} />
+      {user === null ? (
+        loginForm()
+      ) : (
+        <div>
+          <p>{user.name} logged-in</p>
+          <Togglable buttonLabel="new note" ref={noteFormRef}>
+            <NoteForm createNote={addNote} />
+          </Togglable>
+        </div>
+      )}
       <div>
         <button
           onClick={() => {
@@ -87,10 +123,9 @@ const App = () => {
         {/*   <Note key={note.id} note={note} /> */}
         {/* ))} */}
       </ul>
-      <form onSubmit={addNote}>
-        <input type="text" value={newNote} onChange={handleNoteChange} />
-        <button type="submit">add note</button>
-      </form>
+      <Togglable buttonLabel="new note" ref={noteFormRef}>
+        <NoteForm createNote={addNote} />
+      </Togglable>
     </div>
   );
 };

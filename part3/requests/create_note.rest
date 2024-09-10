@@ -1,5 +1,6 @@
 POST http://localhost:3001/api/notes
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaWQiOiI2NmQ2ZThiOTliZGYyNzEyMDkyMjZmZWEiLCJpYXQiOjE3MjUzNzE1MjN9.TuXq23VGbXpUGRKErspQ641b650Z4Nu-51EdYn4WE-M
 
 {
   "content": "rest client is a handy tool",
